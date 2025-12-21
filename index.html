@@ -362,12 +362,14 @@
             q("#cpc").onclick = function (e) {
                     char.statpool += 2;
                     char.cpc += 1;
+                 renderChanges();
                 }
             q("#cpc").oncontextmenu = function (e) {
                     e.preventDefault();
                     if (char.statpool - 2  >= 0 && char.cpc - 1 > 0)) {
                     char.statpool -= 2;
                     char.cpc -= 1;
+                    renderChanges();
                 }
                 }
 
@@ -442,3 +444,4 @@
 
 
 </html>
+
