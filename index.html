@@ -100,6 +100,12 @@
             width: 100%;
         }
 
+        #cpc:hover {
+            background: white;
+            color: black;
+            cursor: pointer;
+        }
+        
         .substat {
             width: 100%;
             font-size: 18px;
@@ -353,6 +359,17 @@
                 }
                 renderChanges();
             }
+            q("#cpc").onclick = function (e) {
+                    char.statpool += 2;
+                    char.cpc += 1;
+                }
+            q("#cpc").oncontextmenu = function (e) {
+                    e.preventDefault();
+                    if (char.statpool - 2  >= 0 && char.cpc - 1 > 0)) {
+                    char.statpool -= 2;
+                    char.cpc -= 1;
+                }
+                }
 
             function calcStatpool() {
                 return (pavg + cavg) * 5 + char.statpool;
@@ -422,5 +439,6 @@
     </div>
 
 </body>
+
 
 </html>
