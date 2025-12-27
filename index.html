@@ -15,7 +15,6 @@
             justify-content: center;
             background-color: black;
             color: white;
-
         }
 
         #statbox {
@@ -121,6 +120,77 @@
             display: flex;
             justify-content: space-between;
         }
+
+        .select {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+        }
+
+        .select span {
+            display: inline-block;
+            font-family: 'Courier New', Courier, monospace;
+            cursor: pointer;
+            width: 200px;
+            margin: 20px;
+            text-align: center;
+        }
+
+        .select span.current {
+            background-color: white;
+            color: black;
+        }
+
+        .itemBox {
+            padding: 10px;
+            border-right: 16px solid white;
+            margin: 5px;
+            width: 100%;
+            user-select: none;
+            cursor: pointer;
+        }
+
+        .itemBox.typew {
+            border-right: 16px solid red;
+        }
+
+        .itemBox.typei {
+            border-right: 16px solid green;
+        }
+
+        .itemBox.typea {
+            border-right: 16px solid blue;
+        }
+
+        .itemBox i {
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        .itemBox.equipped {
+            color: black;
+            background-color: white;
+        }
+
+        .itemBox.equipped .h3 {
+            color: black;
+            background-color: white;
+        }
+
+        .enemyInfo {
+            width: 80%;
+            background: white;
+            color: black;
+            padding: 30px;
+            margin: 20px;
+        }
+
+        .enemyInfo .h3 {
+            color: black;
+        }
+
+        #enemyAttack, #enemyDamage, #enemyHealth {
+            font-family: 'Courier New', Courier, monospace;
+        }
     </style>
 </head>
 
@@ -131,7 +201,19 @@
         <div class="h3">Cerebrophysical Coordination: <span id="cpc">1</span></div>
         <div class="h3">Active Time: <span id="activeTime">1</span> second(s)</div>
         <div class="h3">Health: <span id="health">1</span></div>
-        <div class="box" style="justify-content: center;">
+        <div class="h3">Weapon: <span id="selectedW">Bare Fists</span></div>
+        <div class="h3">Attack Roll: <span id="selectedWStat">Muscloskeletal</span></div>
+        <div class="h3">Damage Roll: <span id="selectedWRoll">1d10</span></div>
+        <div class="h3">Static Damage Negation: <span id="stdN">0</span></div>
+        <div class="h3">Rolled Damage Negation: <span id="rdN">0</span></div>
+        <div class="h3 select">
+            <div>
+                <span class="current" id="selectcharacterSheet" onclick="switchSheet('characterSheet')">CHARACTER
+                    SHEET</span><span id="selectinventory" onclick="switchSheet('inventory')">INVENTORY</span><span
+                    id="selectcombat" onclick="switchSheet('combat')">COMBAT</span>
+            </div>
+        </div>
+        <div class="box" id="characterSheet" style="justify-content: center;">
             <div class="box" style="width: 50%; flex-wrap: wrap; justify-content: center;">
                 <div class="h1" style="text-align: center;">PHYSICS <span id="pavg">1</span></div>
                 <div class="statwrapper">
@@ -285,159 +367,30 @@
                 </div>
             </div>
         </div>
-        <script>
+        <div class="box" id="inventory"
+            style="display: none; justify-content: center; flex-direction: column; align-items: center;">
+            <div class="h1">INVENTORY</div>
+            <div class="box" id="invBox"
+                style="width: 90%;flex-wrap: wrap;flex-direction: column; align-content: center;">
 
-            function q(m) {
-                return document.querySelector(m);
-            }
-
-            var statnamearray = ["msk", "ref", "cal", "imm", "hom", "lif", "ded", "nch", "spc", "mem"];
-            for (var j = 0; j < document.querySelectorAll(".tools").length; j++) {
-                const apricot = statnamearray[j];
-                document.querySelectorAll(".tools")[j].onmousewheel = function (e) {
-                    e.preventDefault()
-                    valAdd(apricot, -Math.sign(e.deltaY));
-                }
-            }
-            for (var j = 0; j < document.querySelectorAll(".substat > div").length; j++) {
-                var el = document.querySelectorAll(".substat > div")[j];
-                const apricot = el.getAttribute("skillid");
-                const chestnut = el.parentElement.getAttribute("skill");
-                el.onmousewheel = function (e) {
-                    e.preventDefault();
-                    valMinorAdd(chestnut, apricot, -Math.sign(e.deltaY));
-                }
-                el.onclick = function (e) {
-                    valMinorAdd(chestnut, apricot, -(e.button - 1));
-                }
-                el.oncontextmenu = function (e) {
-                    e.preventDefault();
-                    valMinorAdd(chestnut, apricot, -1);
-                }
-            }
-
-            function GETSTORAGE() {
-                return window.top.location.hash.substring(1);
-            }
-
-            var char = {
-                "name": "", // todo make this functional
-                "cpc": 1,
-                "exp": 0,
-                "statpool": 25,
-                "stats": {
-                    "msk": [1, 0, 0, 0, 0, 0, 0],
-                    "ref": [1, 0, 0, 0, 0, 0, 0],
-                    "cal": [1, 0, 0, 0, 0, 0, 0],
-                    "imm": [1, 0, 0, 0, 0, 0, 0],
-                    "hom": [1, 0, 0, 0, 0, 0, 0],
-                    "mem": [1, 0, 0, 0, 0, 0, 0],
-                    "lif": [1, 0, 0, 0, 0, 0, 0],
-                    "ded": [1, 0, 0, 0, 0, 0, 0],
-                    "nch": [1, 0, 0, 0, 0, 0, 0],
-                    "spc": [1, 0, 0, 0, 0, 0, 0],
-                }
-            };
-            var cavg = 1;
-            var pavg = 1;
-
-            if (GETSTORAGE() != "") {
-                char = JSON.parse(atob(GETSTORAGE()));
-                renderChangesComplete();
-            }
-
-            function SAVESTORAGE() {
-                char.name = q("#name").innerText;
-                window.top.location.hash = btoa(JSON.stringify(char));
-            }
-
-            q("#cpc").onmousewheel = function (e) {
-                e.preventDefault();
-                if (char.statpool - 2 * Math.sign(e.deltaY) >= 0 && char.cpc - Math.sign(e.deltaY > 0)) {
-                    char.statpool -= 2 * Math.sign(e.deltaY);
-                    char.cpc -= Math.sign(e.deltaY);
-                }
-                renderChanges();
-            }
-            q("#cpc").onclick = function (e) {
-                char.statpool += 2;
-                char.cpc += 1;
-                renderChanges();
-            }
-            q("#cpc").oncontextmenu = function (e) {
-                e.preventDefault();
-                if (char.statpool - 2 >= 0 && char.cpc - 1 > 0) {
-                    char.statpool -= 2;
-                    char.cpc -= 1;
-                    renderChanges();
-                }
-            }
-
-            function calcStatpool() {
-                return (pavg + cavg) * 5 + char.statpool;
-            }
-            function calcAvg() {
-                pavg = (char.stats["msk"][0] + char.stats["ref"][0] + char.stats["cal"][0] + char.stats["imm"][0] + char.stats["hom"][0]) / 5;
-                cavg = (char.stats["mem"][0] + char.stats["lif"][0] + char.stats["ded"][0] + char.stats["nch"][0] + char.stats["spc"][0]) / 5;
-                q("#cavg").innerText = Math.floor(cavg);
-                q("#pavg").innerText = Math.floor(pavg);
-            }
-            function renderChanges() {
-                q("#stat").innerText = char.statpool;
-                q("#health").innerText = char.stats.cal[0];
-                calcAvg();
-                q("#cpc").innerText = char.cpc;
-                q("#activeTime").innerText = 3 / char.cpc;
-            }
-            function renderChangesComplete() {
-                q("#name").innerText = char.name;
-                renderChanges();
-                for (var repeater = 0; repeater < statnamearray.length; repeater++) {
-                    document.getElementById(statnamearray[repeater]).innerText = char.stats[statnamearray[repeater]][0];
-                    for (var minor = 1; minor < 7; minor++) {
-                        try {
-                            document.getElementById("s" + statnamearray[repeater] + minor).innerText = char.stats[statnamearray[repeater]][minor];
-                        }
-                        catch {
-                            break;
-                        }
-                    }
-                    getSkillPool(statnamearray[repeater]);
-                }
-            }
-            function getSkillPool(str) {
-                var arr = char.stats[str];
-                var sum = 0;
-                arr.forEach(x => {
-                    sum += x;
-                });
-                q("#s-" + str).innerText = arr[0] * 3 - (sum - arr[0]);
-                return arr[0] * 3 - (sum - arr[0]);
-            }
-            function valAdd(str, add = 1) {
-                var curVal = char.stats[str][0]; // get major skill value
-                if (curVal + add >= 1 && char.statpool - add >= 0 && getSkillPool(str) + add * 3 > 0 && curVal + add < 11) {
-                    curVal += add;
-                    char.statpool -= add;
-                    char.stats[str][0] = curVal; // set major skill value
-                    document.getElementById(str).innerText = curVal;
-                }
-                SAVESTORAGE();
-                getSkillPool(str);
-                renderChanges();
-            }
-            function valMinorAdd(str, id, add = 1) {
-                var curVal = char.stats[str][id]; // get skill value
-                if (curVal + add >= 0 && getSkillPool(str) - add >= 0 && curVal + add < 11) {
-                    curVal += add;
-                    char.stats[str][id] = curVal; // set skill value
-                    document.getElementById("s" + str + id).innerText = curVal;
-                }
-                SAVESTORAGE();
-                getSkillPool(str);
-                renderChanges();
-            }
-        </script>
+            </div>
+        </div>
+        <div class="box" id="combat"
+            style="display: none; justify-content: center; flex-direction: column; align-items: center;">
+            <div class="enemyInfo">
+                <div class="h3" id="enemyName" style="text-align: center;">ENEMY NAME</div>
+                <div class="h3">ENEMY HEALTH: <span id="enemyHealth">20</span></div>
+                <div class="h3">ENEMY ATTACK ROLL: <span id="enemyAttack"></span></div>
+                <div class="h3">ENEMY DAMAGE ROLL: <span id="enemyDamage"></span></div>
+            </div>
+            <div class="h3" id="combatMessage">Combat started!</div>
+            <div class="h3">Timer until next turn: <span id="combatTimer">6</span> second(s)</div>
+            
+        </div>
+        <script src="char.js"></script>
+        <script src="items.js"></script>
+        <script src="utility.js"></script>
+        <script src="combat.js"></script>
     </div>
 
 </body>
